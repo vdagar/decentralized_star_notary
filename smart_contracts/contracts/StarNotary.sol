@@ -10,44 +10,65 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 contract StarNotary is ERC721, Ownable {
 
 	struct Coordinates {
+		string ra;
 		string dec;
-		string meg;
-		string cent;
+		string mag;
 	}
 
 	struct Star {
 		string name;
-		Coordinates coord;
 		string story;
+		Coordinates coord;
 	}
+
+	uint256 public tokenCount;
 
 	mapping(uint256 => Star) public tokenIdToStarInfo;
 	mapping(uint256 => uint256) public starsForSale;
+	mapping(bytes32 => bool) public starHashMap;
 
 	/// @notice Create a new Star in the Galaxy
 	/// @dev public function, May be this should be external
 	/// @param _name The name the Star
-	/// @param _dec One of the star coordinate value
-	/// @param _meg One of the star coordinate value
-	/// @param _cent One of the star coordinate value
+	/// @param _ra The ra of the star coordinate
+	/// @param _dec The dec of the star coordinate
+	/// @param _mag The meg of the star coordinate
 	/// @param _story Story behind how you found the star
 	/// @return nothing
-	function createStar(string _name, string _dec, string _meg, string _cent, string _story, uint256 _tokenId) public {
-		Star memory newStar = Star(_name, Coordinates(_dec, _meg, _cent), _story);
+	function createStar(string _name, string _story, string _ra, string _dec, string _mag) public {
+		tokenCount++;
+		uint256 tokenId = tokenCount;
 
-		tokenIdToStarInfo[_tokenId] = newStar;
+		//check if tokenId already exists
+		require(keccak256(abi.encodePacked(tokenIdToStarInfo[tokenId].coord.dec)) == keccak256(""), "TokenId already exits");
 
-		_mint(msg.sender, _tokenId);
-		tokenId.push(_tokenId);
+		require(keccak256(abi.encodePacked(_ra)) != keccak256(""), "ra cannot be empty");
+		require(keccak256(abi.encodePacked(_dec)) != keccak256(""), "dec cannot be empty");
+		require(keccak256(abi.encodePacked(_mag)) != keccak256(""), "mag cannot be empty");
+		require(tokenId != 0, "Token Id cannot be zero");
+		require(!checkIfStarExist(_ra, _dec, _mag), "Star Already Exist");
+
+		Coordinates memory newCoordinates = Coordinates(_ra, _dec, _mag);
+		Star memory newStar = Star(_name, _story, newCoordinates);
+
+		tokenIdToStarInfo[tokenId] = newStar;
+
+		bytes32 hash = generateStarHash(_ra, _dec, _mag);
+		starHashMap[hash] = true;
+
+		_mint(msg.sender, tokenId);
 	}
 
 	/// @notice Put a star up for sale
 	/// @dev This function should be called only by the owner of the star
 	/// @param _tokenId Id of the star
-	/// @param _price Price of the star 
+	/// @param _price Price of the star
 	/// @return nothing
-	function putStarUpForSale(uint256 _tokenId, uint256 _price) public onlyOwner() {
-
+	function putStarUpForSale(uint256 _tokenId, uint256 _price) public {
+		require(this.ownerOf(_tokenId) == msg.sender, "Caller is not the owner of the start");
+		require(checkIfStarExist(tokenIdToStarInfo[_tokenId].coord.ra, tokenIdToStarInfo[_tokenId].coord.dec,
+					tokenIdToStarInfo[_tokenId].coord.mag),
+				"Star does not Exist cannot be put up for sale");
 		starsForSale[_tokenId] = _price;
 	}
 
@@ -70,5 +91,38 @@ contract StarNotary is ERC721, Ownable {
 		if(msg.value > starCost) {
 			msg.sender.transfer(msg.value - starCost);
 		}
+	}
+
+	/// @notice function to check if the star already exist in the galaxy
+	/// @dev This is a public function which can be called from outside as well
+	/// @param _ra One of the star coordinate value to check for existence
+	/// @param _dec One of the star coordinate value to check for existence
+	/// @param _mag One of the star coordinate value to check for existence
+	/// @return true if the star already exist, otherwise false
+	function checkIfStarExist(string _ra, string _dec, string _mag) public view returns (bool) {
+
+		return starHashMap[generateStarHash(_ra, _dec, _mag)];
+	}
+
+	/// @notice function to generate the hash for star. This is uesed to check if the star already exist
+	/// @param _ra One of the star coordinate value to check for existence
+	/// @param _dec One of the star coordinate value to check for existence
+	/// @param _mag One of the star coordinate value to check for existence
+	/// @return 256 bit hash value for the star
+	function generateStarHash(string _ra, string _dec, string _mag) private pure returns(bytes32) {
+		return keccak256(abi.encodePacked(_ra, _dec, _mag));
+	}
+
+	/// @notice function returns the properties of the existing star
+	/// @dev This function can be called from outside as well
+	/// @param _tokenId tokenId of the star for which the properites are requested
+	/// @return name, story, ra, dec and mag properties of the star
+	function tokenIdToStarInfo(uint256 _tokenId) public view returns(string, string, string, string, string) {
+		return (tokenIdToStarInfo[_tokenId].name, tokenIdToStarInfo[_tokenId].story, tokenIdToStarInfo[_tokenId].coord.ra,
+				tokenIdToStarInfo[_tokenId].coord.dec, tokenIdToStarInfo[_tokenId].coord.mag);
+	}
+
+	function mint(uint256 _tokenId) public {
+		super._mint(msg.sender, _tokenId);
 	}
 }
