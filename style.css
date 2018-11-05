@@ -7,7 +7,7 @@ body {
     width: 50%;
     margin: 0 auto;
 }
-.bold { 
+.bold {
     font-weight: bolder;
 }
 .row {
@@ -16,5 +16,21 @@ body {
 button {
     margin: 2em 0;
     padding: 1em 4em;
-    display:block;
+    display: block;
+}
+hr {
+    border: none;
+    height: 2px;
+    color: #222; /* old IE */
+    background-color: #222; /* Modern Browsers */
+}
+input {
+    width: 100%;
+}
+textarea {
+    width: 100%;
+}
+table {
+    border: 0px;
+    width: 100%;
 }
