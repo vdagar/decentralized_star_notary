@@ -150,4 +150,42 @@ contract('StarNotary', accounts => {
 			assert.equal(await this.contract.ownerOf(tokenId, {from: to}), to);
 		});
 	});
+
+	/*  Testing following
+		1. Create Two stars
+		2. Check the owners of the both the stars
+		3. Put up both the stars for sale
+		4. Get all the stars for sale. Lenght of the array should be 2
+		5. Buy one (tokenID: 1) star from different account.
+		6. Get all the stars for sale. Length of the array sould be 1
+	*/
+	describe("Get all stars for sale", () => {
+
+		it('Get all stars for sale with there price', async function () {
+			await this.contract.createStar("101", "101", "101", "101", "101", {from: defaultAccount});
+			assert.equal(await this.contract.ownerOf(tokenId), defaultAccount);
+
+			await this.contract.createStar("102", "102", "102", "102", "102", {from: defaultAccount});
+			assert.equal(await this.contract.ownerOf(tokenId), defaultAccount);
+
+			await this.contract.putStarUpForSale(1, starPrice, {from: defaultAccount});
+			await this.contract.putStarUpForSale(2, starPrice, {from: defaultAccount});
+
+			assert.equal(await this.contract.starsForSale(1), starPrice);
+			assert.equal(await this.contract.starsForSale(2), starPrice);
+
+			var [tokens, prices] = await this.contract.getStarsForSale();
+
+			assert.equal(await tokens.length, 2);
+			assert.equal(await prices.length, 2);
+
+			await this.contract.buyStar(1, {from: account1, value: starPrice, gasPrice: 0});
+			assert.equal(await this.contract.ownerOf(1), account1);
+
+			[tokens, prices] = await this.contract.getStarsForSale();
+
+			assert.equal(await tokens.length, 1);
+			assert.equal(await prices.length, 1);
+		});
+	});
 });
