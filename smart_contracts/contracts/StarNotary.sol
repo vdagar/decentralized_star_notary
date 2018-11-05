@@ -26,6 +26,7 @@ contract StarNotary is ERC721, Ownable {
 	mapping(uint256 => Star) public tokenIdToStarInfo;
 	mapping(uint256 => uint256) public starsForSale;
 	mapping(bytes32 => bool) public starHashMap;
+	uint256[] public saleIndexes;
 
 	/// @notice Create a new Star in the Galaxy
 	/// @dev public function, May be this should be external
@@ -69,7 +70,9 @@ contract StarNotary is ERC721, Ownable {
 		require(checkIfStarExist(tokenIdToStarInfo[_tokenId].coord.ra, tokenIdToStarInfo[_tokenId].coord.dec,
 					tokenIdToStarInfo[_tokenId].coord.mag),
 				"Star does not Exist cannot be put up for sale");
+
 		starsForSale[_tokenId] = _price;
+		saleIndexes.push(_tokenId);
 	}
 
 	/// @notice Buy a start up for sale
@@ -77,6 +80,7 @@ contract StarNotary is ERC721, Ownable {
 	/// @param _tokenId Id of the star to be bought
 	/// @return nothing
 	function buyStar(uint256 _tokenId) public payable {
+		uint indexToBeDeleted;
 		require(starsForSale[_tokenId] > 0, "Sender not authorized.");
 
 		uint256 starCost = starsForSale[_tokenId];
@@ -91,6 +95,20 @@ contract StarNotary is ERC721, Ownable {
 		if(msg.value > starCost) {
 			msg.sender.transfer(msg.value - starCost);
 		}
+
+		/* Remove sold star from the list of stars for sale */
+		for (uint i = 0; i < saleIndexes.length; i++) {
+			if (saleIndexes[i] == _tokenId) {
+				indexToBeDeleted = i;
+				break;
+			}
+		}
+
+		if (indexToBeDeleted < saleIndexes.length-1) {
+			saleIndexes[indexToBeDeleted] = saleIndexes[saleIndexes.length-1];
+		}
+
+		saleIndexes.length--;
 	}
 
 	/// @notice function to check if the star already exist in the galaxy
@@ -122,7 +140,23 @@ contract StarNotary is ERC721, Ownable {
 				tokenIdToStarInfo[_tokenId].coord.dec, tokenIdToStarInfo[_tokenId].coord.mag);
 	}
 
+	/// @notice function to mint a new token
+	/// @dev This function can be called from outside as well
+	/// @param _tokenId tokenId of the star to mint
 	function mint(uint256 _tokenId) public {
 		super._mint(msg.sender, _tokenId);
+	}
+
+	/// @notice function to return all the stars that have been put for sale
+	/// @dev this function can be called from outside
+	/// returns arrays of tokenId and price of the stars for sale
+	function getStarsForSale() public view returns(uint256[], uint256[]){
+		uint[] memory price = new uint[](saleIndexes.length);
+
+		for (uint i = 0;i < saleIndexes.length; i++) {
+			price[i] = starsForSale[saleIndexes[i]];
+		}
+
+		return (saleIndexes, price);
 	}
 }
