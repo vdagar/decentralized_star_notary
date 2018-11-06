@@ -1,5 +1,9 @@
 pragma solidity ^0.4.24;
 
+/*
+ * CRITERIA: Define and implement interface. Smart contract implements the ERC-721 or ERC721Token interface
+ */
+
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -8,6 +12,16 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 /// @notice This is a Notary service to claim a star in the Galaxy.
 /// @dev Non-fungible token based on ERC721 and Ownable to make sure only the owner is calling the required function
 contract StarNotary is ERC721, Ownable {
+
+	/*
+	 * CRITERIA: Add metadata to the star token. The star token should have these pieces of metadata added:
+	 *	* Star coordinators
+	 *		- Ra
+	 *		- Dec
+	 *		- Mag
+	 *
+	 *	* Star story
+	 */
 
 	struct Coordinates {
 		string ra;
@@ -25,9 +39,19 @@ contract StarNotary is ERC721, Ownable {
 
 	mapping(uint256 => Star) public tokenIdToStarInfo;
 	mapping(uint256 => uint256) public starsForSale;
+
+	/*
+	 * CRITERIA: Configure uniqueness with the stars. Smart contract prevents stars with the same coordinates from being added
+	 */
 	mapping(bytes32 => bool) public starHashMap;
 	uint256[] public saleIndexes;
 
+	/*
+	 * CRITERIA: Smart contract contains required functions. mart contract implements all these functions -
+	 *		createStar(), putStarUpForSale(), buyStar(), checkIfStarExist(), mint(), approve(),
+	 * 		safeTransferFrom(), SetApprovalForAll(), getApproved(), isApprovedForAll(), ownerOf(),
+	 *		starsForSale(), tokenIdToStarInfo()
+	 */
 	/// @notice Create a new Star in the Galaxy
 	/// @dev public function, May be this should be external
 	/// @param _name The name the Star
@@ -47,6 +71,10 @@ contract StarNotary is ERC721, Ownable {
 		require(keccak256(abi.encodePacked(_dec)) != keccak256(""), "dec cannot be empty");
 		require(keccak256(abi.encodePacked(_mag)) != keccak256(""), "mag cannot be empty");
 		require(tokenId != 0, "Token Id cannot be zero");
+
+		/*
+		 * CRITERIA: Configure uniqueness with the stars. Smart contract prevents stars with the same coordinates from being added
+		 */
 		require(!checkIfStarExist(_ra, _dec, _mag), "Star Already Exist");
 
 		Coordinates memory newCoordinates = Coordinates(_ra, _dec, _mag);
