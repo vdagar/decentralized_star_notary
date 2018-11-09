@@ -526,7 +526,6 @@ var StarNotary = web3.eth.contract(
             "type": "function"
         }
     ]
-
 );
 // Grab the contract at specified deployed address with the interface defined by the ABI
 var starNotary = StarNotary.at('0xd1aab472305a2e1c2fd992f1f12c1757580dfd80');
@@ -557,8 +556,8 @@ function claimButtonClicked() {
                 let starClaimedEvent = starNotary.Transfer();
                 starClaimedEvent.watch(function (error, result) {
                     if (!error) {
-                        alert("transaction complete!");
-                        document.getElementById("result").value = "transaction complete!";
+                        alert(`transaction complete! TokenId of Star: ${JSON.stringify(result.args.tokenId)}`);
+                        document.getElementById("result").value = `transaction complete! TokenId of Star: ${JSON.stringify(result.args.tokenId)}`;
                     } else {
                         alert('watching for star claimed event is failing');
                     }
@@ -604,31 +603,8 @@ function createTable(tableData) {
             cell.setAttribute("align", "center");
         }
     }
+
     table.setAttribute("border", "2");
-    /*
-    var i, j;
-    var body = document.getElementsByTagName("body")[0];
-    var table = document.getElementById('starForSale');
-    var tableBody = document.createElement('tbody');
-
-    for (i = 0; i < tableData[0].length; i++) {
-        var row = document.createElement('tr');
-
-        for (j = 0; j < tableData.length; j++) {
-            var cell = document.createElement('td');
-            cell.appendChild(document.createTextNode(tableData[j][i]));
-            row.appendChild(cell);
-            cell.setAttribute("align", "center");
-        }
-
-        tableBody.appendChild(row);
-    }
-
-    table.appendChild(tableBody);
-    body.appendChild(table);
-    table.setAttribute("border", "2");
-    body.appendChild(document.createElement("hr"));
-    */
 }
 
 function starsForSale() {
