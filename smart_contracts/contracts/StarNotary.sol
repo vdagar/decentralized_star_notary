@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 /*
  * CRITERIA: Define and implement interface. Smart contract implements the ERC-721 or ERC721Token interface
@@ -37,7 +37,7 @@ contract StarNotary is ERC721, Ownable {
 
 	uint256 public tokenCount;
 
-	mapping(uint256 => Star) public tokenIdToStarInfo;
+	mapping(uint256 => Star) tokenIdToStarInfo;
 	mapping(uint256 => uint256) public starsForSale;
 
 	/*
@@ -47,7 +47,7 @@ contract StarNotary is ERC721, Ownable {
 	uint256[] public saleIndexes;
 
 	/*
-	 * CRITERIA: Smart contract contains required functions. mart contract implements all these functions -
+	 * CRITERIA: Smart contract contains required functions. Smart contract implements all these functions -
 	 *		createStar(), putStarUpForSale(), buyStar(), checkIfStarExist(), mint(), approve(),
 	 * 		safeTransferFrom(), SetApprovalForAll(), getApproved(), isApprovedForAll(), ownerOf(),
 	 *		starsForSale(), tokenIdToStarInfo()
@@ -60,7 +60,7 @@ contract StarNotary is ERC721, Ownable {
 	/// @param _mag The meg of the star coordinate
 	/// @param _story Story behind how you found the star
 	/// @return nothing
-	function createStar(string _name, string _story, string _ra, string _dec, string _mag) public {
+	function createStar(string memory _name, string memory _story, string memory _ra, string memory _dec, string memory _mag) public {
 		tokenCount++;
 		uint256 tokenId = tokenCount;
 
@@ -112,11 +112,10 @@ contract StarNotary is ERC721, Ownable {
 		require(starsForSale[_tokenId] > 0, "Sender not authorized.");
 
 		uint256 starCost = starsForSale[_tokenId];
-		address starOwner = this.ownerOf(_tokenId);
+		address payable starOwner = address(uint160(this.ownerOf(_tokenId)));
 		require(msg.value >= starCost, "Ether Sent is not enough");
 
-		_removeTokenFrom(starOwner, _tokenId);
-		_addTokenTo(msg.sender, _tokenId);
+		transferFrom(starOwner, msg.sender, _tokenId);
 
 		starOwner.transfer(starCost);
 
@@ -145,7 +144,7 @@ contract StarNotary is ERC721, Ownable {
 	/// @param _dec One of the star coordinate value to check for existence
 	/// @param _mag One of the star coordinate value to check for existence
 	/// @return true if the star already exist, otherwise false
-	function checkIfStarExist(string _ra, string _dec, string _mag) public view returns (bool) {
+	function checkIfStarExist(string memory _ra, string memory _dec, string memory _mag) public view returns (bool) {
 
 		return starHashMap[generateStarHash(_ra, _dec, _mag)];
 	}
@@ -155,7 +154,7 @@ contract StarNotary is ERC721, Ownable {
 	/// @param _dec One of the star coordinate value to check for existence
 	/// @param _mag One of the star coordinate value to check for existence
 	/// @return 256 bit hash value for the star
-	function generateStarHash(string _ra, string _dec, string _mag) private pure returns(bytes32) {
+	function generateStarHash(string memory _ra, string memory _dec, string memory _mag) private pure returns(bytes32) {
 		return keccak256(abi.encodePacked(_ra, _dec, _mag));
 	}
 
@@ -163,10 +162,10 @@ contract StarNotary is ERC721, Ownable {
 	/// @dev This function can be called from outside as well
 	/// @param _tokenId tokenId of the star for which the properites are requested
 	/// @return name, story, ra, dec and mag properties of the star
-	function tokenIdToStarInfo(uint256 _tokenId) public view returns(string, string, string, string, string) {
-		return (tokenIdToStarInfo[_tokenId].name, tokenIdToStarInfo[_tokenId].story, tokenIdToStarInfo[_tokenId].coord.ra,
-				tokenIdToStarInfo[_tokenId].coord.dec, tokenIdToStarInfo[_tokenId].coord.mag);
-	}
+	//function tokenIdToStarInfo(uint256 _tokenId) public view returns(string, string, string, string, string) {
+	//	return (tokenIdToStarInfo[_tokenId].name, tokenIdToStarInfo[_tokenId].story, tokenIdToStarInfo[_tokenId].coord.ra,
+	//			tokenIdToStarInfo[_tokenId].coord.dec, tokenIdToStarInfo[_tokenId].coord.mag);
+	//}
 
 	/// @notice function to mint a new token
 	/// @dev This function can be called from outside as well
@@ -178,7 +177,7 @@ contract StarNotary is ERC721, Ownable {
 	/// @notice function to return all the stars that have been put for sale
 	/// @dev this function can be called from outside
 	/// returns arrays of tokenId and price of the stars for sale
-	function getStarsForSale() public view returns(uint256[], uint256[]){
+	function getStarsForSale() public view returns(uint256[] memory, uint256[] memory){
 		uint[] memory price = new uint[](saleIndexes.length);
 
 		for (uint i = 0;i < saleIndexes.length; i++) {
