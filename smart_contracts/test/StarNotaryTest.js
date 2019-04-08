@@ -16,7 +16,7 @@ contract('StarNotary', accounts => {
 	let defaultAccount = accounts[0];
 	let account1 = accounts[1];
 	let account2 = accounts[2];
-	let starPrice = web3.toWei(1, "ether");
+	let starPrice = web3.utils.toWei('1', "ether");
 
 	beforeEach(async function() {
 		this.contract = await StarNotary.new({from: defaultAccount})
@@ -46,10 +46,13 @@ contract('StarNotary', accounts => {
 
 	describe('Selling and Buying stars', () => {
 
-		let starPrice = web3.toWei(1, "ether");
+		let starPrice = web3.utils.toWei('1', "ether");
 
 		it('user can put up their star for sale', async function () {
 			await this.contract.createStar(name, story, ra, dec, mag, {from: defaultAccount});
+
+			console.log("Star Onwer " + await this.contract.ownerOf(tokenId));
+
 			assert.equal(await this.contract.ownerOf(tokenId), defaultAccount);
 			await this.contract.putStarUpForSale(tokenId, starPrice, {from: defaultAccount});
 
@@ -71,7 +74,7 @@ contract('StarNotary', accounts => {
 
 	describe('Overpaid amount is returned to user', () => {
 
-		const overpaidAmount = web3.toWei(1.5, 'ether');
+		const overpaidAmount = web3.utils.toWei('1.5', 'ether');
 
 		it('Overpaid amount is returned to user', async function () {
 			await this.contract.createStar(name, story, ra, dec, mag, {from: defaultAccount});
