@@ -112,7 +112,9 @@ contract StarNotary is ERC721, Ownable {
 		require(starsForSale[_tokenId] > 0, "Sender not authorized.");
 
 		uint256 starCost = starsForSale[_tokenId];
-		address payable starOwner = address(uint160(this.ownerOf(_tokenId)));
+		address owner = this.ownerOf(_tokenId);
+		require(owner == address(0x0), "Star is not owned by you");
+		address payable starOwner = address(uint160(owner));
 		require(msg.value >= starCost, "Ether Sent is not enough");
 
 		transferFrom(starOwner, msg.sender, _tokenId);
